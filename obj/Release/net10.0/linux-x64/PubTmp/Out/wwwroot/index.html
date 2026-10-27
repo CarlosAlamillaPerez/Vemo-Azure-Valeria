@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Justificaciones de entrega tardia</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F3F6F5; --surface:#FFFFFF; --surface-2:#EDF1F0; --ink:#13202B; --muted:#56666F; --line:#D6DEE2;
+  --brand:#0E7C6B; --brand-ink:#FFFFFF; --brand-soft:#DCF0EA;
+  --amber:#A86F00; --amber-soft:#FBEFD5; --red:#B23E2B; --red-soft:#F8E1DC;
+  --blue:#2D5C9E; --blue-soft:#E2EAF6;
+}
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Figtree",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;font-size:16px;line-height:1.5}
+h1,h2,h3,h4{font-family:"Bricolage Grotesque","Figtree",system-ui,sans-serif;line-height:1.2;margin:0}
+.wrap{max-width:1200px;margin:0 auto;padding:0 20px}
+header{background:var(--surface);border-bottom:1px solid var(--line)}
+.top{display:flex;flex-wrap:wrap;gap:12px 24px;align-items:center;justify-content:space-between;padding:18px 0}
+.top h1{font-size:1.35rem}
+.top p{margin:2px 0 0;color:var(--muted);font-size:.88rem}
+.who{display:flex;align-items:center;gap:8px;font-size:.88rem;color:var(--muted)}
+.who b{width:32px;height:32px;border-radius:50%;background:var(--blue-soft);color:var(--blue);display:grid;place-items:center;font-size:.78rem}
+.demo-note{background:var(--amber-soft);color:var(--amber);font-size:.85rem;padding:8px 0;font-weight:600}
+main{padding:22px 0 48px}
+.bar{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;margin-bottom:16px}
+.tabs{display:flex;flex-wrap:wrap;gap:6px}
+.tabs button{border:1px solid var(--line);background:var(--surface);color:var(--muted);padding:8px 13px;border-radius:9px;cursor:pointer;font:inherit;font-size:.9rem;font-weight:600}
+.tabs button[aria-pressed="true"]{background:var(--ink);color:#fff;border-color:var(--ink)}
+.tabs .n{display:inline-block;min-width:20px;text-align:center;margin-left:6px;padding:0 6px;border-radius:999px;background:var(--line);color:var(--ink);font-size:.75rem}
+.tabs button[aria-pressed="true"] .n{background:#fff}
+.btn{font:inherit;font-weight:600;font-size:.9rem;padding:8px 14px;border-radius:9px;border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer}
+.btn:hover{border-color:var(--muted)}
+.btn.primary{background:var(--brand);border-color:var(--brand);color:var(--brand-ink)}
+.btn.danger{color:var(--red);border-color:var(--red)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.tools{display:flex;flex-wrap:wrap;gap:8px}
+#msg{min-height:1.3em;margin-bottom:12px;font-size:.9rem;font-weight:600}
+#msg.ok{color:var(--brand)} #msg.err{color:var(--red)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:16px}
+.req{background:var(--surface);border:1px solid var(--line);border-left:5px solid var(--amber);border-radius:12px;padding:16px 18px}
+.req.aprobada{border-left-color:var(--brand)}
+.req.parcial{border-left-color:var(--blue)}
+.req.rechazada{border-left-color:var(--red)}
+.req-top{display:flex;flex-wrap:wrap;gap:6px 8px;align-items:center;font-size:.82rem;color:var(--muted)}
+.folio{font-weight:700;color:var(--ink)}
+.tag{display:inline-block;padding:2px 9px;border-radius:999px;font-size:.75rem;font-weight:600}
+.tag.amber{background:var(--amber-soft);color:var(--amber)}
+.tag.green{background:var(--brand-soft);color:var(--brand)}
+.tag.red{background:var(--red-soft);color:var(--red)}
+.tag.blue{background:var(--blue-soft);color:var(--blue)}
+.req h4{font-size:1.15rem;margin:10px 0 10px}
+.req dl{display:grid;grid-template-columns:1fr 1fr;gap:8px 14px;margin:0}
+.req dt{font-size:.75rem;color:var(--muted)}
+.req dd{margin:1px 0 0;font-size:.92rem;font-weight:500}
+.req .wide{grid-column:1/-1}
+.result{margin-top:12px;padding:10px 12px;border-radius:9px;background:var(--surface-2);font-size:.88rem}
+.result b{font-weight:700}
+.result small{display:block;color:var(--muted);margin-top:3px}
+.actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+.form{margin-top:12px;padding:12px;border-radius:10px;background:var(--surface-2)}
+.form.reject{background:var(--red-soft)}
+.form label{display:block;font-size:.8rem;font-weight:600;margin-bottom:4px}
+.form input,.form textarea{width:100%;border:1px solid var(--line);border-radius:8px;padding:8px 10px;font:inherit;font-size:.9rem;background:var(--surface);color:var(--ink)}
+.form textarea{min-height:64px;resize:vertical}
+.form .row{margin-bottom:10px}
+.form .hint{font-size:.76rem;color:var(--muted);margin-top:3px}
+.form .actions{margin-top:6px}
+.empty{grid-column:1/-1;border:1px dashed var(--line);border-radius:12px;padding:32px 20px;text-align:center;color:var(--muted);background:var(--surface)}
+dialog{border:0;border-radius:14px;padding:0;max-width:420px;width:calc(100% - 32px);box-shadow:0 20px 50px -20px rgba(12,32,44,.55);color:var(--ink);background:var(--surface)}
+dialog::backdrop{background:rgba(19,32,43,.45)}
+.dlg-box{padding:22px}
+.dlg-box h3{font-size:1.15rem;margin-bottom:10px}
+#dlgBody{font-size:.93rem;color:var(--muted)}
+#dlgBody b{color:var(--ink)}
+.dlg-box .actions{justify-content:flex-end;margin-top:18px}
+:focus-visible{outline:3px solid var(--blue);outline-offset:2px}
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap top">
+    <div>
+      <h1>Justificaciones de entrega tardia</h1>
+      <p>Solicitudes que recolecta Valeria IA para el responsable del hub</p>
+    </div>
+    <div class="who"><b aria-hidden="true">CA</b>Carlos A</div>
+  </div>
+  <div class="demo-note"><div class="wrap">Datos de prueba guardados en Azure Cosmos DB.</div></div>
+</header>
+
+<main class="wrap">
+  <div class="bar">
+    <div class="tabs" id="tabs" role="group" aria-label="Filtrar por estado"></div>
+    <div class="tools">
+      <button type="button" class="btn" id="seed">Cargar pruebas</button>
+      <button type="button" class="btn" id="reseed">Reiniciar pruebas</button>
+      <button type="button" class="btn" id="reload">Actualizar</button>
+    </div>
+  </div>
+  <div id="msg" role="status" aria-live="polite"></div>
+  <div class="grid" id="cards"></div>
+</main>
+
+<dialog id="dlg" aria-labelledby="dlgTitle">
+  <div class="dlg-box">
+    <h3 id="dlgTitle"></h3>
+    <div id="dlgBody"></div>
+    <div class="actions">
+      <button type="button" class="btn" id="dlgCancel">Cancelar</button>
+      <button type="button" class="btn primary" id="dlgOk">Aprobar</button>
+    </div>
+  </div>
+</dialog>
+
+<script>
+const API = '/api/justificaciones';
+const STATUS = {
+  pendiente: { label: 'Pendiente', cls: 'amber' },
+  aprobada:  { label: 'Aprobada', cls: 'green' },
+  parcial:   { label: 'Aprobacion parcial', cls: 'blue' },
+  rechazada: { label: 'No aprobada', cls: 'red' }
+};
+const TABS = [
+  ['pendiente', 'Pendientes'], ['aprobada', 'Aprobadas'], ['parcial', 'Parciales'],
+  ['rechazada', 'Rechazadas'], ['todas', 'Todas']
+];
+let items = [];
+let filter = 'pendiente';
+
+function escapeHtml(s) {
+  return String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
+function fmtMin(n) {
+  if (n === null || n === undefined) return '-';
+  const h = Math.floor(n / 60), m = n % 60;
+  if (h === 0) return m + ' min';
+  if (m === 0) return h + ' h';
+  return h + ' h ' + m + ' min';
+}
+
+function fmtDate(s) {
+  return s ? String(s).slice(0, 16) : '-';
+}
+
+function showMsg(text, ok) {
+  const el = document.getElementById('msg');
+  el.textContent = text || '';
+  el.className = ok ? 'ok' : 'err';
+}
+
+async function api(path, method, body) {
+  const opts = { method: method || 'GET', headers: {} };
+  if (body !== undefined) {
+    opts.headers['Content-Type'] = 'application/json';
+    opts.body = JSON.stringify(body);
+  }
+  const res = await fetch(path, opts);
+  return await res.json();
+}
+
+async function load() {
+  try {
+    const json = await api(API);
+    if (!json.success) {
+      showMsg(json.message, false);
+      return;
+    }
+    items = json.data || [];
+    render();
+  } catch (e) {
+    console.error(e);
+    showMsg('No se pudo cargar la lista', false);
+  }
+}
+
+function render() {
+  const count = k => k === 'todas' ? items.length : items.filter(x => x.status === k).length;
+
+  document.getElementById('tabs').innerHTML = TABS.map(([k, label]) =>
+    `<button type="button" data-filter="${k}" aria-pressed="${filter === k}">${label}<span class="n">${count(k)}</span></button>`
+  ).join('');
+
+  const list = filter === 'todas' ? items : items.filter(x => x.status === filter);
+  const cards = document.getElementById('cards');
+
+  if (list.length === 0) {
+    cards.innerHTML = items.length === 0
+      ? '<div class="empty">Aun no hay solicitudes guardadas. Pulsa "Cargar pruebas" para traer las de ejemplo.</div>'
+      : '<div class="empty">No hay solicitudes en este estado.</div>';
+    return;
+  }
+  cards.innerHTML = list.map(cardHtml).join('');
+}
+
+function cardHtml(j) {
+  const st = STATUS[j.status] || { label: j.status, cls: 'blue' };
+  const isTime = j.type === 'tiempo';
+
+  const details = isTime
+    ? `<div><dt>Inicio de turno</dt><dd>${escapeHtml(j.shift_start || '-')}</dd></div>
+       <div><dt>Entrega del auto</dt><dd>${escapeHtml(j.car_delivered || '-')}</dd></div>`
+    : `<div><dt>Bateria al recibir</dt><dd>${j.battery_pct === null || j.battery_pct === undefined ? '-' : escapeHtml(j.battery_pct) + '%'}</dd></div>
+       <div><dt>Tiempo de carga</dt><dd>${escapeHtml(fmtMin(j.charging_minutes))}</dd></div>`;
+
+  let footer = '';
+  if (j.status === 'pendiente') {
+    const canPartial = (j.requested_minutes || 0) >= 2;
+    footer = `
+      <div class="actions">
+        <button type="button" class="btn primary" data-act="approve">Aprobar</button>
+        <button type="button" class="btn" data-act="partial-open"${canPartial ? '' : ' disabled'}>Aprobacion parcial</button>
+        <button type="button" class="btn danger" data-act="reject-open">Rechazar</button>
+      </div>
+      <div class="form f-partial" hidden>
+        <div class="row">
+          <label for="min-${escapeHtml(j.folio)}">Minutos que se aprueban</label>
+          <input type="number" id="min-${escapeHtml(j.folio)}" min="1" max="${(j.requested_minutes || 2) - 1}" step="1">
+          <div class="hint">Debe ser menor a los ${escapeHtml(fmtMin(j.requested_minutes))} solicitados.</div>
+        </div>
+        <div class="row">
+          <label for="pn-${escapeHtml(j.folio)}">Nota (obligatoria)</label>
+          <textarea id="pn-${escapeHtml(j.folio)}" maxlength="300" placeholder="Por que se aprueba solo una parte"></textarea>
+        </div>
+        <div class="actions">
+          <button type="button" class="btn primary" data-act="partial-save">Guardar</button>
+          <button type="button" class="btn" data-act="cancel">Cancelar</button>
+        </div>
+      </div>
+      <div class="form reject f-reject" hidden>
+        <div class="row">
+          <label for="rn-${escapeHtml(j.folio)}">Motivo del rechazo (opcional)</label>
+          <textarea id="rn-${escapeHtml(j.folio)}" maxlength="300" placeholder="Por que no se aprueba"></textarea>
+        </div>
+        <div class="actions">
+          <button type="button" class="btn danger" data-act="reject-save">Confirmar rechazo</button>
+          <button type="button" class="btn" data-act="cancel">Cancelar</button>
+        </div>
+      </div>`;
+  } else {
+    const approved = j.status === 'rechazada'
+      ? 'No se aprobo ningun tiempo'
+      : `Aprobado: <b>${escapeHtml(fmtMin(j.approved_minutes))}</b> de ${escapeHtml(fmtMin(j.requested_minutes))}`;
+    footer = `
+      <div class="result">
+        ${approved}
+        <small>Resolvio ${escapeHtml(j.resolved_by || '-')} el ${escapeHtml(fmtDate(j.resolved_at))}</small>
+        ${j.note ? `<small>Nota: ${escapeHtml(j.note)}</small>` : ''}
+      </div>`;
+  }
+
+  return `
+    <article class="req ${escapeHtml(j.status)}" data-folio="${escapeHtml(j.folio)}">
+      <div class="req-top">
+        <span class="folio">${escapeHtml(j.folio)}</span>
+        <span class="tag ${st.cls}">${escapeHtml(st.label)}</span>
+        <span class="tag blue">${isTime ? 'Por tiempo' : 'Por carga'}</span>
+        <span>Recibida ${escapeHtml(fmtDate(j.received_at))}</span>
+      </div>
+      <h4>${escapeHtml(j.driver_name || '-')}</h4>
+      <dl>
+        <div><dt>Placa</dt><dd>${escapeHtml(j.plate || '-')}</dd></div>
+        <div><dt>Hub</dt><dd>${escapeHtml(j.hub || '-')}</dd></div>
+        ${details}
+        <div><dt>Tiempo a justificar</dt><dd>${escapeHtml(fmtMin(j.requested_minutes))}</dd></div>
+        <div class="wide"><dt>Motivo del conductor</dt><dd>${escapeHtml(j.reason || '-')}</dd></div>
+      </dl>
+      ${footer}
+    </article>`;
+}
+
+// Modal de confirmacion (reemplaza al confirm() del navegador). Devuelve true o false.
+function confirmModal(title, bodyHtml, okText) {
+  return new Promise(resolve => {
+    const dlg = document.getElementById('dlg');
+    document.getElementById('dlgTitle').textContent = title;
+    document.getElementById('dlgBody').innerHTML = bodyHtml;
+    document.getElementById('dlgOk').textContent = okText;
+    dlg.returnValue = '';
+    document.getElementById('dlgOk').onclick = () => dlg.close('ok');
+    document.getElementById('dlgCancel').onclick = () => dlg.close('cancel');
+    dlg.onclick = e => { if (e.target === dlg) dlg.close('cancel'); };
+    dlg.onclose = () => resolve(dlg.returnValue === 'ok');
+    dlg.showModal();
+  });
+}
+
+async function send(btn, path, body) {
+  btn.disabled = true;
+  try {
+    const json = await api(path, 'POST', body);
+    showMsg(json.message, json.success);
+    if (json.success) await load();
+  } catch (e) {
+    console.error(e);
+    showMsg('No se pudo completar la accion', false);
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+document.getElementById('tabs').addEventListener('click', e => {
+  const b = e.target.closest('button[data-filter]');
+  if (!b) return;
+  filter = b.dataset.filter;
+  showMsg('', true);
+  render();
+});
+
+document.getElementById('reload').addEventListener('click', () => { showMsg('', true); load(); });
+
+document.getElementById('seed').addEventListener('click', e => {
+  send(e.currentTarget, `${API}/importar`);
+});
+
+document.getElementById('reseed').addEventListener('click', e => {
+  const btn = e.currentTarget;
+  confirmModal(
+    'Reiniciar pruebas',
+    'Se volveran a cargar las solicitudes de prueba y se <b>perderan las decisiones</b> que hayas tomado.',
+    'Reiniciar'
+  ).then(ok => {
+    if (ok) send(btn, `${API}/reiniciar`);
+  });
+});
+
+document.getElementById('cards').addEventListener('click', e => {
+  const btn = e.target.closest('button[data-act]');
+  if (!btn) return;
+  const card = btn.closest('.req');
+  const folio = card.dataset.folio;
+  const item = items.find(x => x.folio === folio);
+  const fPartial = card.querySelector('.f-partial');
+  const fReject = card.querySelector('.f-reject');
+
+  switch (btn.dataset.act) {
+    case 'approve':
+      confirmModal(
+        'Aprobar justificacion',
+        `Se aprobara <b>${escapeHtml(folio)}</b> de <b>${escapeHtml(item ? item.driver_name : '')}</b> por el total solicitado: <b>${escapeHtml(item ? fmtMin(item.requested_minutes) : '-')}</b>.`,
+        'Aprobar'
+      ).then(ok => {
+        if (ok) send(btn, `${API}/${encodeURIComponent(folio)}/aprobar`);
+      });
+      break;
+    case 'partial-open':
+      fReject.hidden = true; fPartial.hidden = false;
+      fPartial.querySelector('input').focus();
+      break;
+    case 'reject-open':
+      fPartial.hidden = true; fReject.hidden = false;
+      fReject.querySelector('textarea').focus();
+      break;
+    case 'cancel':
+      fPartial.hidden = true; fReject.hidden = true;
+      break;
+    case 'partial-save': {
+      const minutes = parseInt(fPartial.querySelector('input').value, 10);
+      const note = fPartial.querySelector('textarea').value.trim();
+      const requested = item ? (item.requested_minutes || 0) : 0;
+      if (!Number.isInteger(minutes) || minutes <= 0 || minutes >= requested) {
+        showMsg('Los minutos deben ser mayores a 0 y menores a ' + requested, false);
+        return;
+      }
+      if (!note) { showMsg('La nota es obligatoria en una aprobacion parcial', false); return; }
+      send(btn, `${API}/${encodeURIComponent(folio)}/parcial`, { minutes, note });
+      break;
+    }
+    case 'reject-save': {
+      const note = fReject.querySelector('textarea').value.trim();
+      send(btn, `${API}/${encodeURIComponent(folio)}/rechazar`, { note });
+      break;
+    }
+  }
+});
+
+load();
+</script>
+</body>
+</html>

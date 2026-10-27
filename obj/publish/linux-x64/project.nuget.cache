@@ -1,0 +1,25 @@
+{
+  "version": 2,
+  "dgSpecHash": "F2vNqCV7MAM=",
+  "success": true,
+  "projectFilePath": "C:\\Users\\CarlosManuelAlamilla\\source\\repos\\VemoLab.Api\\VemoLab.Api\\VemoLab.Api.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\CarlosManuelAlamilla\\.nuget\\packages\\azure.core\\1.44.1\\azure.core.1.44.1.nupkg.sha512",
+    "C:\\Users\\CarlosManuelAlamilla\\.nuget\\packages\\microsoft.aspnetcore.openapi\\10.0.13\\microsoft.aspnetcore.openapi.10.0.13.nupkg.sha512",
+    "C:\\Users\\CarlosManuelAlamilla\\.nuget\\packages\\microsoft.azure.cosmos\\3.63.3\\microsoft.azure.cosmos.3.63.3.nupkg.sha512",
+    "C:\\Users\\CarlosManuelAlamilla\\.nuget\\packages\\microsoft.bcl.asyncinterfaces\\6.0.0\\microsoft.bcl.asyncinterfaces.6.0.0.nupkg.sha512",
+    "C:\\Users\\CarlosManuelAlamilla\\.nuget\\packages\\microsoft.bcl.hashcode\\1.1.0\\microsoft.bcl.hashcode.1.1.0.nupkg.sha512",
+    "C:\\Users\\CarlosManuelAlamilla\\.nuget\\packages\\microsoft.openapi\\2.12.2\\microsoft.openapi.2.12.2.nupkg.sha512",
+    "C:\\Users\\CarlosManuelAlamilla\\.nuget\\packages\\microsoft.win32.systemevents\\6.0.0\\microsoft.win32.systemevents.6.0.0.nupkg.sha512",
+    "C:\\Users\\CarlosManuelAlamilla\\.nuget\\packages\\newtonsoft.json\\13.0.4\\newtonsoft.json.13.0.4.nupkg.sha512",
+    "C:\\Users\\CarlosManuelAlamilla\\.nuget\\packages\\system.clientmodel\\1.1.0\\system.clientmodel.1.1.0.nupkg.sha512",
+    "C:\\Users\\CarlosManuelAlamilla\\.nuget\\packages\\system.configuration.configurationmanager\\6.0.0\\system.configuration.configurationmanager.6.0.0.nupkg.sha512",
+    "C:\\Users\\CarlosManuelAlamilla\\.nuget\\packages\\system.drawing.common\\6.0.0\\system.drawing.common.6.0.0.nupkg.sha512",
+    "C:\\Users\\CarlosManuelAlamilla\\.nuget\\packages\\system.memory.data\\6.0.0\\system.memory.data.6.0.0.nupkg.sha512",
+    "C:\\Users\\CarlosManuelAlamilla\\.nuget\\packages\\system.security.cryptography.protecteddata\\6.0.0\\system.security.cryptography.protecteddata.6.0.0.nupkg.sha512",
+    "C:\\Users\\CarlosManuelAlamilla\\.nuget\\packages\\system.security.permissions\\6.0.0\\system.security.permissions.6.0.0.nupkg.sha512",
+    "C:\\Users\\CarlosManuelAlamilla\\.nuget\\packages\\system.windows.extensions\\6.0.0\\system.windows.extensions.6.0.0.nupkg.sha512",
+    "C:\\Users\\CarlosManuelAlamilla\\.nuget\\packages\\microsoft.netcore.app.host.linux-x64\\10.0.13\\microsoft.netcore.app.host.linux-x64.10.0.13.nupkg.sha512"
+  ],
+  "logs": []
+}

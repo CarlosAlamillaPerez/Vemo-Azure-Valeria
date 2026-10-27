@@ -1,0 +1,2 @@
+wwwroot\index.html
+C:\Users\CarlosManuelAlamilla\source\repos\VemoLab.Api\VemoLab.Api\wwwroot\index.html

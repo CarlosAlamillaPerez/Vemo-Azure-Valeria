@@ -1,0 +1,111 @@
+[
+  {
+    "ContainingType": "VemoLab.Api.Controllers.JustificacionesController",
+    "Method": "GetAll",
+    "RelativePath": "api/Justificaciones",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "VemoLab.Api.Controllers.JustificacionesController",
+    "Method": "Approve",
+    "RelativePath": "api/Justificaciones/{folio}/aprobar",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "folio",
+        "Type": "System.String",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "VemoLab.Api.Controllers.JustificacionesController",
+    "Method": "ApprovePartial",
+    "RelativePath": "api/Justificaciones/{folio}/parcial",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "folio",
+        "Type": "System.String",
+        "IsRequired": true
+      },
+      {
+        "Name": "input",
+        "Type": "VemoLab.Api.Controllers.PartialInput",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "VemoLab.Api.Controllers.JustificacionesController",
+    "Method": "Reject",
+    "RelativePath": "api/Justificaciones/{folio}/rechazar",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "folio",
+        "Type": "System.String",
+        "IsRequired": true
+      },
+      {
+        "Name": "input",
+        "Type": "VemoLab.Api.Controllers.RejectInput",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "VemoLab.Api.Controllers.JustificacionesController",
+    "Method": "Import",
+    "RelativePath": "api/Justificaciones/importar",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "VemoLab.Api.Controllers.JustificacionesController",
+    "Method": "Reset",
+    "RelativePath": "api/Justificaciones/reiniciar",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "VemoLab.Api.Controllers.WeatherForecastController",
+    "Method": "Get",
+    "RelativePath": "WeatherForecast",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": [
+      {
+        "Type": "System.Collections.Generic.IEnumerable\u00601[[VemoLab.Api.WeatherForecast, VemoLab.Api, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]",
+        "MediaTypes": [
+          "text/plain",
+          "application/json",
+          "text/json"
+        ],
+        "StatusCode": 200
+      }
+    ],
+    "EndpointName": "GetWeatherForecast"
+  }
+]
