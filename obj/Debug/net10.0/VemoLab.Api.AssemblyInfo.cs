@@ -15,7 +15,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("VemoLab.Api")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+2b97d6773fda3be6d86f91fc5e1f3f52df09ac7b")]
 [assembly: System.Reflection.AssemblyProductAttribute("VemoLab.Api")]
 [assembly: System.Reflection.AssemblyTitleAttribute("VemoLab.Api")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

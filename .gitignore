@@ -1,0 +1,6 @@
+dotnet new gitignore
+git rm -r --cached bin obj
+git rm --cached "Properties/PublishProfiles/vemo-carlos-lab-api - Zip Deploy.pubxml.user" VemoLab.Api.csproj.user
+git add .gitignore
+git commit -m "Agrega .gitignore y quita bin/obj del repo"
+git push
