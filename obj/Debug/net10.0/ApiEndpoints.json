@@ -88,6 +88,16 @@
     "ReturnTypes": []
   },
   {
+    "ContainingType": "VemoLab.Api.Controllers.MeController",
+    "Method": "Get",
+    "RelativePath": "api/me",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
     "ContainingType": "VemoLab.Api.Controllers.WeatherForecastController",
     "Method": "Get",
     "RelativePath": "WeatherForecast",

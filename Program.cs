@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authentication;
 using VemoLab.Api;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -8,6 +9,11 @@ builder.Services.AddControllers();
 builder.Services.AddHttpClient();
 builder.Services.AddSingleton<CosmosStore>();
 builder.Services.AddSingleton<SharePointSync>();
+
+// Quien eres: Easy Auth (Azure) o Auth:DevUser (local). Que puedes: usuarios_roles. Ver EasyAuthHandler.
+builder.Services.AddAuthentication(EasyAuthHandler.SchemeName)
+    .AddScheme<AuthenticationSchemeOptions, EasyAuthHandler>(EasyAuthHandler.SchemeName, _ => { });
+builder.Services.AddAuthorization();
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 
@@ -37,6 +43,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.UseDefaultFiles();

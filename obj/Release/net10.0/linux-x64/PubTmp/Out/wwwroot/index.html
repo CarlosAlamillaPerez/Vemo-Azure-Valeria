@@ -15,6 +15,10 @@
   --blue:#2D5C9E; --blue-soft:#E2EAF6;
 }
 *,*::before,*::after{box-sizing:border-box}
+[hidden]{display:none !important}
+/* Sin acceso: solo el titulo de la app y la tarjeta */
+body.no-access .who, body.no-access .demo-note, body.no-access .bar,
+body.no-access #msg, body.no-access #cards{display:none !important}
 body{margin:0;background:var(--bg);color:var(--ink);font-family:"Figtree",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;font-size:16px;line-height:1.5}
 h1,h2,h3,h4{font-family:"Bricolage Grotesque","Figtree",system-ui,sans-serif;line-height:1.2;margin:0}
 .wrap{max-width:1200px;margin:0 auto;padding:0 20px}
@@ -69,6 +73,9 @@ main{padding:22px 0 48px}
 .form .row{margin-bottom:10px}
 .form .hint{font-size:.76rem;color:var(--muted);margin-top:3px}
 .form .actions{margin-top:6px}
+.noaccess{max-width:560px;margin:40px auto;background:var(--surface);border:1px solid var(--line);border-left:5px solid var(--red);border-radius:12px;padding:22px 24px}
+.noaccess h2{font-size:1.2rem;margin-bottom:8px}
+.noaccess p{margin:0;color:var(--muted)}
 .empty{grid-column:1/-1;border:1px dashed var(--line);border-radius:12px;padding:32px 20px;text-align:center;color:var(--muted);background:var(--surface)}
 dialog{border:0;border-radius:14px;padding:0;max-width:420px;width:calc(100% - 32px);box-shadow:0 20px 50px -20px rgba(12,32,44,.55);color:var(--ink);background:var(--surface)}
 dialog::backdrop{background:rgba(19,32,43,.45)}
@@ -87,17 +94,21 @@ dialog::backdrop{background:rgba(19,32,43,.45)}
       <h1>Justificaciones de entrega tardia</h1>
       <p>Solicitudes que recolecta Valeria IA para el responsable del hub</p>
     </div>
-    <div class="who"><b aria-hidden="true">CA</b>Carlos A</div>
+    <div class="who" id="who"></div>
   </div>
-  <div class="demo-note"><div class="wrap">Datos de prueba guardados en Azure Cosmos DB.</div></div>
+  <div class="demo-note"><div class="wrap" id="scopeNote">Datos de prueba guardados en Azure Cosmos DB.</div></div>
 </header>
 
 <main class="wrap">
-  <div class="bar">
+  <section class="noaccess" id="noaccess" hidden>
+    <h2>Sin acceso</h2>
+    <p id="noaccessMsg"></p>
+  </section>
+  <div class="bar" id="bar" hidden>
     <div class="tabs" id="tabs" role="group" aria-label="Filtrar por estado"></div>
     <div class="tools">
-      <button type="button" class="btn" id="seed">Cargar pruebas</button>
-      <button type="button" class="btn" id="reseed">Reiniciar pruebas</button>
+      <button type="button" class="btn" id="seed" hidden>Cargar pruebas</button>
+      <button type="button" class="btn" id="reseed" hidden>Reiniciar pruebas</button>
       <button type="button" class="btn" id="reload">Actualizar</button>
     </div>
   </div>
@@ -118,6 +129,8 @@ dialog::backdrop{background:rgba(19,32,43,.45)}
 
 <script>
 const API = '/api/justificaciones';
+const ME = '/api/me';
+const ROLE_LABEL = { admin: 'Administrador', aprobador: 'Aprobador', lector: 'Lector' };
 const STATUS = {
   pendiente: { label: 'Pendiente', cls: 'amber' },
   aprobada:  { label: 'Aprobada', cls: 'green' },
@@ -130,6 +143,7 @@ const TABS = [
 ];
 let items = [];
 let filter = 'pendiente';
+let me = null;   // quien soy y que puedo hacer (lo decide el servidor en /api/me)
 
 function escapeHtml(s) {
   return String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;')
@@ -164,6 +178,78 @@ async function api(path, method, body) {
   return await res.json();
 }
 
+function cap(s) {
+  s = String(s || '');
+  return s.charAt(0).toUpperCase() + s.slice(1);
+}
+
+function initials(name) {
+  const parts = String(name || '?').replace(/@.*/, '').split(/[\s._-]+/).filter(Boolean);
+  return ((parts[0] || '?')[0] + (parts[1] ? parts[1][0] : '')).toUpperCase();
+}
+
+// Solo refleja lo que el servidor permite: la regla real se valida en la API
+function canResolve(j) {
+  if (!me) return false;
+  if (me.es_admin) return true;
+  return me.roles.includes('aprobador') && me.hubs.includes(String(j.hub || '').trim().toLowerCase());
+}
+
+function showNoAccess(text) {
+  document.body.classList.add('no-access');
+  showMsg('', true);
+  document.getElementById('bar').hidden = true;
+  document.getElementById('cards').innerHTML = '';
+  document.getElementById('noaccessMsg').textContent = text;
+  document.getElementById('noaccess').hidden = false;
+}
+
+function renderWho() {
+  const roles = (me.roles || []).map(r => ROLE_LABEL[r] || r).join(', ') || 'Sin rol';
+  document.getElementById('who').innerHTML =
+    `<b aria-hidden="true">${escapeHtml(initials(me.nombre || me.email))}</b>` +
+    `<span>${escapeHtml(me.nombre || me.email)}<br><small>${escapeHtml(roles)}</small></span>`;
+}
+
+function renderScope() {
+  const hubs = me.alcance === 'todos' ? 'todos los hubs' : (me.hubs || []).map(cap).join(', ');
+  const mode = me.puede_resolver ? '' : ' · Solo lectura';
+  document.getElementById('scopeNote').textContent =
+    `Datos de prueba guardados en Azure Cosmos DB · Viendo: ${hubs}${mode}`;
+}
+
+async function init() {
+  try {
+    const json = await api(ME);
+    if (!json.success) { showNoAccess(json.message); return; }
+    me = json.data;
+    renderWho();
+
+    if (!me.tiene_acceso) {
+      const who = me.email || 'tu cuenta';
+      showNoAccess(me.estado === 'inactivo'
+        ? `El acceso de ${who} esta desactivado. Pide al administrador que lo reactive.`
+        : me.estado === 'activo'
+          ? `${who} no tiene un rol asignado. Pide al administrador que te asigne uno.`
+          : `${who} no tiene acceso a esta aplicacion. Pide al administrador que te de de alta.`);
+      return;
+    }
+    if (me.alcance === 'ninguno') {
+      showNoAccess('Tu usuario no tiene hubs asignados. Pide al administrador que te asigne al menos uno.');
+      return;
+    }
+
+    document.getElementById('seed').hidden = !me.es_admin;
+    document.getElementById('reseed').hidden = !me.es_admin;
+    document.getElementById('bar').hidden = false;
+    renderScope();
+    await load();
+  } catch (e) {
+    console.error(e);
+    showNoAccess('No se pudo validar tu sesion. Recarga la pagina.');
+  }
+}
+
 async function load() {
   try {
     const json = await api(API);
@@ -191,7 +277,9 @@ function render() {
 
   if (list.length === 0) {
     cards.innerHTML = items.length === 0
-      ? '<div class="empty">Aun no hay solicitudes guardadas. Pulsa "Cargar pruebas" para traer las de ejemplo.</div>'
+      ? (me && me.es_admin
+          ? '<div class="empty">Aun no hay solicitudes guardadas. Pulsa "Cargar pruebas" para traer las de ejemplo.</div>'
+          : '<div class="empty">Aun no hay solicitudes en tus hubs.</div>')
       : '<div class="empty">No hay solicitudes en este estado.</div>';
     return;
   }
@@ -209,7 +297,9 @@ function cardHtml(j) {
        <div><dt>Tiempo de carga</dt><dd>${escapeHtml(fmtMin(j.charging_minutes))}</dd></div>`;
 
   let footer = '';
-  if (j.status === 'pendiente') {
+  if (j.status === 'pendiente' && !canResolve(j)) {
+    footer = `<div class="result"><small>Pendiente de resolver por el responsable del hub.</small></div>`;
+  } else if (j.status === 'pendiente') {
     const canPartial = (j.requested_minutes || 0) >= 2;
     footer = `
       <div class="actions">
@@ -379,7 +469,7 @@ document.getElementById('cards').addEventListener('click', e => {
   }
 });
 
-load();
+init();
 </script>
 </body>
 </html>

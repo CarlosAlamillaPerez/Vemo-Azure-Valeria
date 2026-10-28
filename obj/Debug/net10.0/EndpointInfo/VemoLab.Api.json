@@ -195,6 +195,18 @@
         }
       }
     },
+    "/api/me": {
+      "get": {
+        "tags": [
+          "Me"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
     "/WeatherForecast": {
       "get": {
         "tags": [
@@ -303,6 +315,9 @@
   "tags": [
     {
       "name": "Justificaciones"
+    },
+    {
+      "name": "Me"
     },
     {
       "name": "WeatherForecast"

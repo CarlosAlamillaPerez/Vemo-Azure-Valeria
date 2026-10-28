@@ -1,5 +1,6 @@
 using System.Net;
 using System.Text.Json.Serialization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Cosmos;
 using Nj = Newtonsoft.Json;
@@ -29,6 +30,7 @@ public class Justification
     [JsonPropertyName("requested_minutes"), Nj.JsonProperty("requested_minutes")] public int? RequestedMinutes { get; set; }
     [JsonPropertyName("approved_minutes"), Nj.JsonProperty("approved_minutes")] public int? ApprovedMinutes { get; set; }
     [JsonPropertyName("resolved_by"), Nj.JsonProperty("resolved_by")] public string? ResolvedBy { get; set; }
+    [JsonPropertyName("resolved_by_email"), Nj.JsonProperty("resolved_by_email")] public string? ResolvedByEmail { get; set; }
     [JsonPropertyName("resolved_at"), Nj.JsonProperty("resolved_at")] public string? ResolvedAt { get; set; }
     [JsonPropertyName("note"), Nj.JsonProperty("note")] public string? Note { get; set; }
 
@@ -58,11 +60,15 @@ public class RejectInput
     public string? Note { get; set; }
 }
 
+// Acceso (usuarios_roles, ver UserAccess):
+//   ver la lista      -> admin, aprobador o lector, filtrado por hubs
+//   resolver          -> admin (todos los hubs) o aprobador (solo sus hubs)
+//   importar/reiniciar -> solo admin
 [ApiController]
 [Route("api/[controller]")]
+[Authorize(Roles = AppRoles.Cualquiera)]
 public class JustificacionesController : ControllerBase
 {
-    private const string Resolver = "Carlos A";   // simulacion: aun no hay inicio de sesion
     private const int MaxNoteLength = 300;
 
     private readonly CosmosStore _store;
@@ -84,6 +90,9 @@ public class JustificacionesController : ControllerBase
 
     private static JsonResult Result(bool success, string message, object? data = null)
         => new(new { success, message, data });
+
+    private static JsonResult Denied(string message)
+        => new(new { success = false, message, data = (object?)null }) { StatusCode = StatusCodes.Status403Forbidden };
 
     private static string NowMexico()
     {
@@ -152,8 +161,23 @@ public class JustificacionesController : ControllerBase
     {
         try
         {
+            QueryDefinition query;
+            switch (User.Scope())
+            {
+                case HubScope.Todos:
+                    query = new QueryDefinition("SELECT * FROM c");
+                    break;
+                case HubScope.Asignados:
+                    // Hubs del usuario ya vienen en minusculas; LOWER evita fallar por mayusculas en el documento
+                    query = new QueryDefinition("SELECT * FROM c WHERE ARRAY_CONTAINS(@hubs, LOWER(c.hub))")
+                        .WithParameter("@hubs", User.Hubs());
+                    break;
+                default:
+                    return Result(true, "No tienes hubs asignados. Pide que te asignen uno.", new List<Justification>());
+            }
+
             var container = await _store.GetContainerAsync(ct);
-            var items = await QueryAsync(container, new QueryDefinition("SELECT * FROM c"), ct);
+            var items = await QueryAsync(container, query, ct);
             items = items.OrderByDescending(x => x.ReceivedAt).ToList();
             return Result(true, "OK", items);
         }
@@ -165,10 +189,12 @@ public class JustificacionesController : ControllerBase
 
     // Carga las solicitudes de ORDS que todavia no existan en Cosmos
     [HttpPost("importar")]
+    [Authorize(Roles = AppRoles.Admin)]
     public Task<IActionResult> Import(CancellationToken ct) => LoadTestDataAsync(false, ct);
 
     // Vuelve a cargar todas las de ORDS, pisando las decisiones tomadas
     [HttpPost("reiniciar")]
+    [Authorize(Roles = AppRoles.Admin)]
     public Task<IActionResult> Reset(CancellationToken ct) => LoadTestDataAsync(true, ct);
 
     private async Task<IActionResult> LoadTestDataAsync(bool overwrite, CancellationToken ct)
@@ -217,13 +243,16 @@ public class JustificacionesController : ControllerBase
     {
         var container = await _store.GetContainerAsync(ct);
         var item = await FindAsync(container, folio, ct);
-        if (item == null) return Result(false, "No se encontro la solicitud");
+        // Fuera de su alcance se responde igual que si no existiera: no se revela que hay en otros hubs
+        if (item == null || !User.CanSee(item.Hub)) return Result(false, "No se encontro la solicitud");
+        if (!User.CanResolve(item.Hub)) return Denied($"No puedes resolver solicitudes del hub {item.Hub}");
         if (item.Status != "pendiente") return Result(false, "La solicitud ya fue resuelta");
 
         var error = apply(item);
         if (error != null) return Result(false, error);
 
-        item.ResolvedBy = Resolver;
+        item.ResolvedBy = User.Identity?.Name;   // nombre de usuarios_roles (o el correo si no tiene)
+        item.ResolvedByEmail = User.Email();
         item.ResolvedAt = NowMexico();
 
         ItemResponse<Justification> saved;
@@ -263,6 +292,7 @@ public class JustificacionesController : ControllerBase
     }
 
     [HttpPost("{folio}/aprobar")]
+    [Authorize(Roles = AppRoles.Resolver)]
     public async Task<IActionResult> Approve(string folio, CancellationToken ct)
     {
         try
@@ -281,6 +311,7 @@ public class JustificacionesController : ControllerBase
     }
 
     [HttpPost("{folio}/rechazar")]
+    [Authorize(Roles = AppRoles.Resolver)]
     public async Task<IActionResult> Reject(string folio, [FromBody] RejectInput? input, CancellationToken ct)
     {
         try
@@ -304,6 +335,7 @@ public class JustificacionesController : ControllerBase
     }
 
     [HttpPost("{folio}/parcial")]
+    [Authorize(Roles = AppRoles.Resolver)]
     public async Task<IActionResult> ApprovePartial(string folio, [FromBody] PartialInput? input, CancellationToken ct)
     {
         try

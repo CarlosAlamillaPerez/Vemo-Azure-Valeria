@@ -50,4 +50,5 @@ C:\Users\CarlosManuelAlamilla\source\repos\VemoLab.Api\VemoLab.Api\bin\Release\n
 C:\Users\CarlosManuelAlamilla\source\repos\VemoLab.Api\VemoLab.Api\bin\Release\net10.0\linux-x64\System.Security.Cryptography.ProtectedData.dll
 C:\Users\CarlosManuelAlamilla\source\repos\VemoLab.Api\VemoLab.Api\bin\Release\net10.0\linux-x64\System.Security.Permissions.dll
 C:\Users\CarlosManuelAlamilla\source\repos\VemoLab.Api\VemoLab.Api\bin\Release\net10.0\linux-x64\System.Windows.Extensions.dll
-C:\Users\CarlosManuelAlamilla\source\repos\VemoLab.Api\VemoLab.Api\obj\Release\net10.0\linux-x64\compressed\2e5xamv7h0-{0}-tzuu2ozzap-tzuu2ozzap.gz
+C:\Users\CarlosManuelAlamilla\source\repos\VemoLab.Api\VemoLab.Api\obj\Release\net10.0\linux-x64\VemoLab.Api.sourcelink.json
+C:\Users\CarlosManuelAlamilla\source\repos\VemoLab.Api\VemoLab.Api\obj\Release\net10.0\linux-x64\compressed\2e5xamv7h0-{0}-kt2yguck9a-kt2yguck9a.gz
