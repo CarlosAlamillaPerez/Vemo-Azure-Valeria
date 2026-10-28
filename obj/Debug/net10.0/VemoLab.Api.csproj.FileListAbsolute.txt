@@ -77,3 +77,4 @@ C:\Users\CarlosManuelAlamilla\source\repos\VemoLab.Api\VemoLab.Api\bin\Debug\net
 C:\Users\CarlosManuelAlamilla\source\repos\VemoLab.Api\VemoLab.Api\bin\Debug\net10.0\runtimes\win\lib\net6.0\System.Security.Cryptography.ProtectedData.dll
 C:\Users\CarlosManuelAlamilla\source\repos\VemoLab.Api\VemoLab.Api\bin\Debug\net10.0\runtimes\win\lib\net6.0\System.Windows.Extensions.dll
 C:\Users\CarlosManuelAlamilla\source\repos\VemoLab.Api\VemoLab.Api\obj\Debug\net10.0\compressed\2e5xamv7h0-{0}-tzuu2ozzap-tzuu2ozzap.gz
+C:\Users\CarlosManuelAlamilla\source\repos\VemoLab.Api\VemoLab.Api\obj\Debug\net10.0\VemoLab.Api.sourcelink.json

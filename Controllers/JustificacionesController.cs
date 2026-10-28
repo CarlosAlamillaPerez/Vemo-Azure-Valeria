@@ -32,6 +32,11 @@ public class Justification
     [JsonPropertyName("resolved_at"), Nj.JsonProperty("resolved_at")] public string? ResolvedAt { get; set; }
     [JsonPropertyName("note"), Nj.JsonProperty("note")] public string? Note { get; set; }
 
+    // Estado del envio a SharePoint: "sincronizado", "error" o vacio si todavia no aplica
+    [JsonPropertyName("sharepoint_status"), Nj.JsonProperty("sharepoint_status")] public string? SharepointStatus { get; set; }
+    [JsonPropertyName("sharepoint_synced_at"), Nj.JsonProperty("sharepoint_synced_at")] public string? SharepointSyncedAt { get; set; }
+    [JsonPropertyName("sharepoint_error"), Nj.JsonProperty("sharepoint_error")] public string? SharepointError { get; set; }
+
     // Control de concurrencia de Cosmos: evita resolver dos veces la misma solicitud
     [JsonIgnore, Nj.JsonProperty("_etag", NullValueHandling = Nj.NullValueHandling.Ignore)]
     public string? ETag { get; set; }
@@ -61,15 +66,17 @@ public class JustificacionesController : ControllerBase
     private const int MaxNoteLength = 300;
 
     private readonly CosmosStore _store;
+    private readonly SharePointSync _sharePoint;
     private readonly IHttpClientFactory _http;
     private readonly IConfiguration _config;
     private readonly ILogger<JustificacionesController> _logger;
 
     public JustificacionesController(
-        CosmosStore store, IHttpClientFactory http, IConfiguration config,
+        CosmosStore store, SharePointSync sharePoint, IHttpClientFactory http, IConfiguration config,
         ILogger<JustificacionesController> logger)
     {
         _store = store;
+        _sharePoint = sharePoint;
         _http = http;
         _config = config;
         _logger = logger;
@@ -219,9 +226,10 @@ public class JustificacionesController : ControllerBase
         item.ResolvedBy = Resolver;
         item.ResolvedAt = NowMexico();
 
+        ItemResponse<Justification> saved;
         try
         {
-            await container.ReplaceItemAsync(
+            saved = await container.ReplaceItemAsync(
                 item, item.Id, new PartitionKey(item.Hub),
                 new ItemRequestOptions { IfMatchEtag = item.ETag }, ct);
         }
@@ -230,7 +238,28 @@ public class JustificacionesController : ControllerBase
             return Result(false, "La solicitud ya fue resuelta");
         }
 
-        return Result(true, okMessage);
+        // La decision ya quedo en Cosmos. Desde aqui, un fallo de SharePoint no la revierte:
+        // se marca en el documento para poder reenviarla despues.
+        var resolved = saved.Resource;
+        resolved.ETag = saved.ETag;
+
+        var (sent, sendError) = await _sharePoint.SendAsync(resolved, ct);
+        resolved.SharepointStatus = sent ? "sincronizado" : "error";
+        resolved.SharepointSyncedAt = sent ? NowMexico() : null;
+        resolved.SharepointError = sent ? null : sendError;
+
+        try
+        {
+            await container.ReplaceItemAsync(
+                resolved, resolved.Id, new PartitionKey(resolved.Hub),
+                new ItemRequestOptions { IfMatchEtag = resolved.ETag }, ct);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "No se pudo guardar el estado de SharePoint de {Folio}", resolved.Folio);
+        }
+
+        return Result(true, sent ? okMessage : okMessage + " (no se pudo enviar a SharePoint)");
     }
 
     [HttpPost("{folio}/aprobar")]

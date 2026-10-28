@@ -7,10 +7,27 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 builder.Services.AddHttpClient();
 builder.Services.AddSingleton<CosmosStore>();
+builder.Services.AddSingleton<SharePointSync>();
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 
 var app = builder.Build();
+
+// Siembra el primer administrador si existe Auth:BootstrapAdmin (idempotente).
+// Tambien crea el contenedor usuarios_roles la primera vez.
+var bootstrapAdmin = app.Configuration["Auth:BootstrapAdmin"];
+if (!string.IsNullOrWhiteSpace(bootstrapAdmin))
+{
+    try
+    {
+        await app.Services.GetRequiredService<CosmosStore>()
+            .EnsureBootstrapAdminAsync(bootstrapAdmin, CancellationToken.None);
+    }
+    catch (Exception ex)
+    {
+        app.Logger.LogError(ex, "No se pudo sembrar el administrador inicial");
+    }
+}
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
