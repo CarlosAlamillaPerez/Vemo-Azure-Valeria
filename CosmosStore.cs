@@ -14,6 +14,13 @@ public class CosmosStore
     private const string JustificacionesName = "justificaciones";
     private const string JustificacionesPartition = "/hub";
 
+    // El folio es un numero consecutivo. Cosmos no tiene secuencias: se lleva en un documento contador
+    // dentro de "justificaciones" y se incrementa con control de concurrencia (IfMatchEtag).
+    private const string ContadorHub = "_sistema";
+    private const string ContadorId = "_contador_folio";
+    private const long FolioInicial = 1000;   // el primer folio es 1001
+    private const int ContadorIntentos = 10;
+
     private const string UsuariosName = "usuarios_roles";
     private const string UsuariosPartition = "/id";
 
@@ -33,6 +40,47 @@ public class CosmosStore
 
     public Task<Container> GetUsuariosContainerAsync(CancellationToken ct)
         => EnsureContainerAsync(UsuariosName, UsuariosPartition, ct);
+
+    // Siguiente folio consecutivo. Si dos solicitudes llegan a la vez, una pierde la carrera (412 o 409),
+    // vuelve a leer el contador y reintenta: nunca se entrega el mismo folio dos veces.
+    public async Task<long> NextFolioAsync(CancellationToken ct)
+    {
+        var container = await GetContainerAsync(ct);
+        var partition = new PartitionKey(ContadorHub);
+
+        for (var intento = 0; intento < ContadorIntentos; intento++)
+        {
+            FolioContador contador;
+            string? etag = null;
+            try
+            {
+                var read = await container.ReadItemAsync<FolioContador>(ContadorId, partition, cancellationToken: ct);
+                contador = read.Resource;
+                etag = read.ETag;
+            }
+            catch (CosmosException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
+            {
+                contador = new FolioContador { Valor = FolioInicial };
+            }
+
+            contador.Valor++;
+            try
+            {
+                if (etag == null)
+                    await container.CreateItemAsync(contador, partition, cancellationToken: ct);
+                else
+                    await container.ReplaceItemAsync(contador, ContadorId, partition,
+                        new ItemRequestOptions { IfMatchEtag = etag }, ct);
+                return contador.Valor;
+            }
+            catch (CosmosException ex) when (
+                ex.StatusCode is HttpStatusCode.Conflict or HttpStatusCode.PreconditionFailed)
+            {
+                // otro proceso se llevo ese numero: se vuelve a leer y se reintenta
+            }
+        }
+        throw new InvalidOperationException("No se pudo generar el folio. Intenta de nuevo.");
+    }
 
     public static string NormalizeEmail(string email) => email.Trim().ToLowerInvariant();
 

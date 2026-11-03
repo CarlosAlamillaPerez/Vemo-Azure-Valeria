@@ -1,6 +1,19 @@
 @VemoLab.Api_HostAddress = http://localhost:5247
 
-GET {{VemoLab.Api_HostAddress}}/weatherforecast/
-Accept: application/json
+### Solicitud como la manda Valeria IA (sin sesion; en local no hace falta Auth:DevUser)
+POST {{VemoLab.Api_HostAddress}}/api/justificaciones
+Content-Type: application/json
+
+{
+  "categoria": "Justificar tiempo por falla temporal en la unidad",
+  "nombre_completo": "Juan Perez Morales",
+  "numero_telefono": "5512345678",
+  "conversation_id": "prueba-0001",
+  "hub": "Polanco",
+  "horario": { "hora_inicio": "06:00", "hora_fin": "14:30" },
+  "placas": "MXA-482-C",
+  "tiempo_desconexion": { "horas": 1, "minutos": 30 },
+  "motivo_desconexion": "La unidad presento una falla y tuve que esperar"
+}
 
 ###

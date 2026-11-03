@@ -23,6 +23,56 @@
             "description": "OK"
           }
         }
+      },
+      "post": {
+        "tags": [
+          "Justificaciones"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "oneOf": [
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "$ref": "#/components/schemas/SolicitudInput"
+                  }
+                ]
+              }
+            },
+            "text/json": {
+              "schema": {
+                "oneOf": [
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "$ref": "#/components/schemas/SolicitudInput"
+                  }
+                ]
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "oneOf": [
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "$ref": "#/components/schemas/SolicitudInput"
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
       }
     },
     "/api/Justificaciones/importar": {
@@ -37,10 +87,84 @@
         }
       }
     },
-    "/api/Justificaciones/reiniciar": {
+    "/api/Justificaciones/simular": {
       "post": {
         "tags": [
           "Justificaciones"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "oneOf": [
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "$ref": "#/components/schemas/SimularInput"
+                  }
+                ]
+              }
+            },
+            "text/json": {
+              "schema": {
+                "oneOf": [
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "$ref": "#/components/schemas/SimularInput"
+                  }
+                ]
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "oneOf": [
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "$ref": "#/components/schemas/SimularInput"
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/Justificaciones/pruebas": {
+      "delete": {
+        "tags": [
+          "Justificaciones"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/Justificaciones/{folio}/ticket": {
+      "get": {
+        "tags": [
+          "Justificaciones"
+        ],
+        "parameters": [
+          {
+            "name": "folio",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
         ],
         "responses": {
           "200": {
@@ -249,6 +373,13 @@
   },
   "components": {
     "schemas": {
+      "HorarioInput": {
+        "type": "object",
+        "properties": {
+          "hora_inicio": { },
+          "hora_fin": { }
+        }
+      },
       "PartialInput": {
         "type": "object",
         "properties": {
@@ -276,6 +407,73 @@
               "null",
               "string"
             ]
+          }
+        }
+      },
+      "SimularInput": {
+        "type": "object",
+        "properties": {
+          "cantidad": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "null",
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          }
+        }
+      },
+      "SolicitudInput": {
+        "type": "object",
+        "properties": {
+          "categoria": { },
+          "nombre_completo": { },
+          "numero_telefono": { },
+          "conversation_id": { },
+          "hub": { },
+          "horario": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/HorarioInput"
+              }
+            ]
+          },
+          "placas": { },
+          "tiempo_desconexion": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/TiempoInput"
+              }
+            ]
+          },
+          "motivo_desconexion": { }
+        }
+      },
+      "TiempoInput": {
+        "type": "object",
+        "properties": {
+          "horas": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "minutos": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
           }
         }
       },

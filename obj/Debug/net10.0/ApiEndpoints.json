@@ -11,6 +11,22 @@
   },
   {
     "ContainingType": "VemoLab.Api.Controllers.JustificacionesController",
+    "Method": "Receive",
+    "RelativePath": "api/Justificaciones",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "input",
+        "Type": "VemoLab.Api.SolicitudInput",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "VemoLab.Api.Controllers.JustificacionesController",
     "Method": "Approve",
     "RelativePath": "api/Justificaciones/{folio}/aprobar",
     "HttpMethod": "POST",
@@ -69,6 +85,22 @@
   },
   {
     "ContainingType": "VemoLab.Api.Controllers.JustificacionesController",
+    "Method": "GetTicket",
+    "RelativePath": "api/Justificaciones/{folio}/ticket",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "folio",
+        "Type": "System.String",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "VemoLab.Api.Controllers.JustificacionesController",
     "Method": "Import",
     "RelativePath": "api/Justificaciones/importar",
     "HttpMethod": "POST",
@@ -79,12 +111,28 @@
   },
   {
     "ContainingType": "VemoLab.Api.Controllers.JustificacionesController",
-    "Method": "Reset",
-    "RelativePath": "api/Justificaciones/reiniciar",
-    "HttpMethod": "POST",
+    "Method": "DeleteSimulated",
+    "RelativePath": "api/Justificaciones/pruebas",
+    "HttpMethod": "DELETE",
     "IsController": true,
     "Order": 0,
     "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "VemoLab.Api.Controllers.JustificacionesController",
+    "Method": "Simulate",
+    "RelativePath": "api/Justificaciones/simular",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "input",
+        "Type": "VemoLab.Api.Controllers.SimularInput",
+        "IsRequired": false
+      }
+    ],
     "ReturnTypes": []
   },
   {

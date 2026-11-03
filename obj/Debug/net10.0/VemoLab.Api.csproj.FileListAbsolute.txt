@@ -77,4 +77,16 @@ C:\Users\CarlosManuelAlamilla\source\repos\VemoLab.Api\VemoLab.Api\bin\Debug\net
 C:\Users\CarlosManuelAlamilla\source\repos\VemoLab.Api\VemoLab.Api\bin\Debug\net10.0\runtimes\win\lib\net6.0\System.Security.Cryptography.ProtectedData.dll
 C:\Users\CarlosManuelAlamilla\source\repos\VemoLab.Api\VemoLab.Api\bin\Debug\net10.0\runtimes\win\lib\net6.0\System.Windows.Extensions.dll
 C:\Users\CarlosManuelAlamilla\source\repos\VemoLab.Api\VemoLab.Api\obj\Debug\net10.0\VemoLab.Api.sourcelink.json
-C:\Users\CarlosManuelAlamilla\source\repos\VemoLab.Api\VemoLab.Api\obj\Debug\net10.0\compressed\2e5xamv7h0-{0}-kt2yguck9a-kt2yguck9a.gz
+C:\Users\CarlosManuelAlamilla\source\repos\VemoLab.Api\VemoLab.Api\bin\Debug\net10.0\Azure.Storage.Blobs.dll
+C:\Users\CarlosManuelAlamilla\source\repos\VemoLab.Api\VemoLab.Api\bin\Debug\net10.0\Azure.Storage.Common.dll
+C:\Users\CarlosManuelAlamilla\source\repos\VemoLab.Api\VemoLab.Api\bin\Debug\net10.0\SkiaSharp.dll
+C:\Users\CarlosManuelAlamilla\source\repos\VemoLab.Api\VemoLab.Api\bin\Debug\net10.0\System.IO.Hashing.dll
+C:\Users\CarlosManuelAlamilla\source\repos\VemoLab.Api\VemoLab.Api\bin\Debug\net10.0\runtimes\linux-arm\native\libSkiaSharp.so
+C:\Users\CarlosManuelAlamilla\source\repos\VemoLab.Api\VemoLab.Api\bin\Debug\net10.0\runtimes\linux-arm64\native\libSkiaSharp.so
+C:\Users\CarlosManuelAlamilla\source\repos\VemoLab.Api\VemoLab.Api\bin\Debug\net10.0\runtimes\linux-musl-x64\native\libSkiaSharp.so
+C:\Users\CarlosManuelAlamilla\source\repos\VemoLab.Api\VemoLab.Api\bin\Debug\net10.0\runtimes\linux-x64\native\libSkiaSharp.so
+C:\Users\CarlosManuelAlamilla\source\repos\VemoLab.Api\VemoLab.Api\bin\Debug\net10.0\runtimes\osx\native\libSkiaSharp.dylib
+C:\Users\CarlosManuelAlamilla\source\repos\VemoLab.Api\VemoLab.Api\bin\Debug\net10.0\runtimes\win-arm64\native\libSkiaSharp.dll
+C:\Users\CarlosManuelAlamilla\source\repos\VemoLab.Api\VemoLab.Api\bin\Debug\net10.0\runtimes\win-x64\native\libSkiaSharp.dll
+C:\Users\CarlosManuelAlamilla\source\repos\VemoLab.Api\VemoLab.Api\bin\Debug\net10.0\runtimes\win-x86\native\libSkiaSharp.dll
+C:\Users\CarlosManuelAlamilla\source\repos\VemoLab.Api\VemoLab.Api\obj\Debug\net10.0\compressed\2e5xamv7h0-{0}-en7fk46o2w-en7fk46o2w.gz

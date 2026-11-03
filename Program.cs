@@ -1,14 +1,35 @@
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Mvc;
 using VemoLab.Api;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .ConfigureApiBehaviorOptions(options =>
+    {
+        // Un JSON mal formado (ej. "horas": "abc") responde con nuestro contrato { success, message, data }
+        // y dice que campos fallaron, para que quien llama (Valeria IA) sepa que corregir.
+        options.InvalidModelStateResponseFactory = context =>
+        {
+            var campos = context.ModelState
+                .Where(e => e.Value?.Errors.Count > 0)
+                .Select(e => string.IsNullOrEmpty(e.Key) ? "cuerpo" : e.Key.TrimStart('$', '.'))
+                .Distinct();
+            return new JsonResult(new
+            {
+                success = false,
+                message = "El JSON enviado no es valido. Revisa: " + string.Join(", ", campos),
+                data = (object?)null
+            }) { StatusCode = StatusCodes.Status400BadRequest };
+        };
+    });
 builder.Services.AddHttpClient();
 builder.Services.AddSingleton<CosmosStore>();
 builder.Services.AddSingleton<SharePointSync>();
+builder.Services.AddSingleton<TicketStorage>();
+builder.Services.AddSingleton<ValeriaNotifier>();
 
 // Quien eres: Easy Auth (Azure) o Auth:DevUser (local). Que puedes: usuarios_roles. Ver EasyAuthHandler.
 builder.Services.AddAuthentication(EasyAuthHandler.SchemeName)

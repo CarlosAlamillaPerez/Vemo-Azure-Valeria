@@ -84,6 +84,9 @@ dialog::backdrop{background:rgba(19,32,43,.45)}
 #dlgBody{font-size:.93rem;color:var(--muted)}
 #dlgBody b{color:var(--ink)}
 .dlg-box .actions{justify-content:flex-end;margin-top:18px}
+dialog.wide{max-width:560px}
+#ticketImg{display:block;max-width:100%;max-height:70vh;margin:0 auto;border:1px solid var(--line);border-radius:8px}
+.dlg-box a.btn{text-decoration:none;display:inline-block}
 :focus-visible{outline:3px solid var(--blue);outline-offset:2px}
 </style>
 </head>
@@ -107,8 +110,9 @@ dialog::backdrop{background:rgba(19,32,43,.45)}
   <div class="bar" id="bar" hidden>
     <div class="tabs" id="tabs" role="group" aria-label="Filtrar por estado"></div>
     <div class="tools">
-      <button type="button" class="btn" id="seed" hidden>Cargar pruebas</button>
-      <button type="button" class="btn" id="reseed" hidden>Reiniciar pruebas</button>
+      <button type="button" class="btn" id="load" hidden>Cargar pruebas</button>
+      <button type="button" class="btn" id="seed" hidden>Simular solicitud</button>
+      <button type="button" class="btn" id="reseed" hidden>Borrar pruebas</button>
       <button type="button" class="btn" id="reload">Actualizar</button>
     </div>
   </div>
@@ -123,6 +127,17 @@ dialog::backdrop{background:rgba(19,32,43,.45)}
     <div class="actions">
       <button type="button" class="btn" id="dlgCancel">Cancelar</button>
       <button type="button" class="btn primary" id="dlgOk">Aprobar</button>
+    </div>
+  </div>
+</dialog>
+
+<dialog id="ticketDlg" class="wide" aria-labelledby="ticketTitle">
+  <div class="dlg-box">
+    <h3 id="ticketTitle">Ticket</h3>
+    <img id="ticketImg" alt="Ticket de la justificacion">
+    <div class="actions">
+      <a class="btn" id="ticketOpen" href="#" target="_blank" rel="noopener">Abrir en otra pestana</a>
+      <button type="button" class="btn primary" id="ticketClose">Cerrar</button>
     </div>
   </div>
 </dialog>
@@ -239,6 +254,7 @@ async function init() {
       return;
     }
 
+    document.getElementById('load').hidden = !me.es_admin;
     document.getElementById('seed').hidden = !me.es_admin;
     document.getElementById('reseed').hidden = !me.es_admin;
     document.getElementById('bar').hidden = false;
@@ -266,19 +282,19 @@ async function load() {
 }
 
 function render() {
-  const count = k => k === 'todas' ? items.length : items.filter(x => x.status === k).length;
+  const count = k => k === 'todas' ? items.length : items.filter(x => x.estatus === k).length;
 
   document.getElementById('tabs').innerHTML = TABS.map(([k, label]) =>
     `<button type="button" data-filter="${k}" aria-pressed="${filter === k}">${label}<span class="n">${count(k)}</span></button>`
   ).join('');
 
-  const list = filter === 'todas' ? items : items.filter(x => x.status === filter);
+  const list = filter === 'todas' ? items : items.filter(x => x.estatus === filter);
   const cards = document.getElementById('cards');
 
   if (list.length === 0) {
     cards.innerHTML = items.length === 0
       ? (me && me.es_admin
-          ? '<div class="empty">Aun no hay solicitudes guardadas. Pulsa "Cargar pruebas" para traer las de ejemplo.</div>'
+          ? '<div class="empty">Aun no hay solicitudes. Llegan desde Valeria IA; para probar pulsa "Cargar pruebas" o "Simular solicitud".</div>'
           : '<div class="empty">Aun no hay solicitudes en tus hubs.</div>')
       : '<div class="empty">No hay solicitudes en este estado.</div>';
     return;
@@ -287,20 +303,14 @@ function render() {
 }
 
 function cardHtml(j) {
-  const st = STATUS[j.status] || { label: j.status, cls: 'blue' };
-  const isTime = j.type === 'tiempo';
-
-  const details = isTime
-    ? `<div><dt>Inicio de turno</dt><dd>${escapeHtml(j.shift_start || '-')}</dd></div>
-       <div><dt>Entrega del auto</dt><dd>${escapeHtml(j.car_delivered || '-')}</dd></div>`
-    : `<div><dt>Bateria al recibir</dt><dd>${j.battery_pct === null || j.battery_pct === undefined ? '-' : escapeHtml(j.battery_pct) + '%'}</dd></div>
-       <div><dt>Tiempo de carga</dt><dd>${escapeHtml(fmtMin(j.charging_minutes))}</dd></div>`;
+  const st = STATUS[j.estatus] || { label: j.estatus, cls: 'blue' };
+  const horario = [j.hora_inicio, j.hora_fin].filter(Boolean).join(' - ') || '-';
 
   let footer = '';
-  if (j.status === 'pendiente' && !canResolve(j)) {
+  if (j.estatus === 'pendiente' && !canResolve(j)) {
     footer = `<div class="result"><small>Pendiente de resolver por el responsable del hub.</small></div>`;
-  } else if (j.status === 'pendiente') {
-    const canPartial = (j.requested_minutes || 0) >= 2;
+  } else if (j.estatus === 'pendiente') {
+    const canPartial = (j.minutos_solicitados || 0) >= 2;
     footer = `
       <div class="actions">
         <button type="button" class="btn primary" data-act="approve">Aprobar</button>
@@ -310,8 +320,8 @@ function cardHtml(j) {
       <div class="form f-partial" hidden>
         <div class="row">
           <label for="min-${escapeHtml(j.folio)}">Minutos que se aprueban</label>
-          <input type="number" id="min-${escapeHtml(j.folio)}" min="1" max="${(j.requested_minutes || 2) - 1}" step="1">
-          <div class="hint">Debe ser menor a los ${escapeHtml(fmtMin(j.requested_minutes))} solicitados.</div>
+          <input type="number" id="min-${escapeHtml(j.folio)}" min="1" max="${(j.minutos_solicitados || 2) - 1}" step="1">
+          <div class="hint">Debe ser menor a los ${escapeHtml(fmtMin(j.minutos_solicitados))} solicitados.</div>
         </div>
         <div class="row">
           <label for="pn-${escapeHtml(j.folio)}">Nota (obligatoria)</label>
@@ -324,7 +334,7 @@ function cardHtml(j) {
       </div>
       <div class="form reject f-reject" hidden>
         <div class="row">
-          <label for="rn-${escapeHtml(j.folio)}">Motivo del rechazo (opcional)</label>
+          <label for="rn-${escapeHtml(j.folio)}">Motivo del rechazo (obligatorio)</label>
           <textarea id="rn-${escapeHtml(j.folio)}" maxlength="300" placeholder="Por que no se aprueba"></textarea>
         </div>
         <div class="actions">
@@ -333,32 +343,46 @@ function cardHtml(j) {
         </div>
       </div>`;
   } else {
-    const approved = j.status === 'rechazada'
+    const approved = j.estatus === 'rechazada'
       ? 'No se aprobo ningun tiempo'
-      : `Aprobado: <b>${escapeHtml(fmtMin(j.approved_minutes))}</b> de ${escapeHtml(fmtMin(j.requested_minutes))}`;
+      : `Aprobado: <b>${escapeHtml(fmtMin(j.minutos_aprobados))}</b> de ${escapeHtml(fmtMin(j.minutos_solicitados))}`;
+    // Solo el admin ve el estado de las integraciones (SharePoint, ticket, Valeria)
+    const VALERIA = {
+      notificado: 'avisada', no_configurado: 'sin endpoint configurado',
+      omitido_prueba: 'omitida (solicitud de prueba)', error: 'no se pudo avisar'
+    };
+    const admin = me && me.es_admin ? [
+      j.sharepoint_estatus === 'error' ? '<small>SharePoint: no se pudo enviar (ver sharepoint_error en Cosmos)</small>' : '',
+      j.ticket_error ? `<small>Ticket: ${escapeHtml(j.ticket_error)}</small>` : '',
+      j.valeria_estatus ? `<small>Valeria: ${escapeHtml(VALERIA[j.valeria_estatus] || j.valeria_estatus)}</small>` : ''
+    ].join('') : '';
     footer = `
       <div class="result">
         ${approved}
-        <small>Resolvio ${escapeHtml(j.resolved_by || '-')} el ${escapeHtml(fmtDate(j.resolved_at))}</small>
-        ${j.note ? `<small>Nota: ${escapeHtml(j.note)}</small>` : ''}
+        <small>Resolvio ${escapeHtml(j.resuelto_por || '-')} el ${escapeHtml(fmtDate(j.resuelto_el))}</small>
+        ${j.nota ? `<small>${j.estatus === 'rechazada' ? 'Motivo' : 'Nota'}: ${escapeHtml(j.nota)}</small>` : ''}
+        ${admin}
+      </div>
+      <div class="actions">
+        <button type="button" class="btn" data-act="ticket">Ver ticket</button>
       </div>`;
   }
 
   return `
-    <article class="req ${escapeHtml(j.status)}" data-folio="${escapeHtml(j.folio)}">
+    <article class="req ${escapeHtml(j.estatus)}" data-folio="${escapeHtml(j.folio)}">
       <div class="req-top">
-        <span class="folio">${escapeHtml(j.folio)}</span>
+        <span class="folio">Folio ${escapeHtml(j.folio)}</span>
         <span class="tag ${st.cls}">${escapeHtml(st.label)}</span>
-        <span class="tag blue">${isTime ? 'Por tiempo' : 'Por carga'}</span>
-        <span>Recibida ${escapeHtml(fmtDate(j.received_at))}</span>
+        <span>Recibida ${escapeHtml(fmtDate(j.recibido_el))}</span>
       </div>
-      <h4>${escapeHtml(j.driver_name || '-')}</h4>
+      <h4>${escapeHtml(j.nombre_completo || '-')}</h4>
       <dl>
-        <div><dt>Placa</dt><dd>${escapeHtml(j.plate || '-')}</dd></div>
+        <div><dt>Placas</dt><dd>${escapeHtml(j.placas || '-')}</dd></div>
         <div><dt>Hub</dt><dd>${escapeHtml(j.hub || '-')}</dd></div>
-        ${details}
-        <div><dt>Tiempo a justificar</dt><dd>${escapeHtml(fmtMin(j.requested_minutes))}</dd></div>
-        <div class="wide"><dt>Motivo del conductor</dt><dd>${escapeHtml(j.reason || '-')}</dd></div>
+        <div><dt>Horario</dt><dd>${escapeHtml(horario)}</dd></div>
+        <div><dt>Tiempo a justificar</dt><dd>${escapeHtml(fmtMin(j.minutos_solicitados))}</dd></div>
+        <div class="wide"><dt>Categoria</dt><dd>${escapeHtml(j.categoria || '-')}</dd></div>
+        <div class="wide"><dt>Motivo del conductor</dt><dd>${escapeHtml(j.motivo_desconexion || '-')}</dd></div>
       </dl>
       ${footer}
     </article>`;
@@ -380,10 +404,34 @@ function confirmModal(title, bodyHtml, okText) {
   });
 }
 
-async function send(btn, path, body) {
+// Pide al servidor un enlace temporal (unos minutos) y muestra el ticket en un visor
+async function openTicket(btn, folio) {
+  btn.disabled = true;
+  showMsg('', true);
+  try {
+    const json = await api(`${API}/${encodeURIComponent(folio)}/ticket`);
+    if (!json.success) { showMsg(json.message, false); return; }
+    const img = document.getElementById('ticketImg');
+    img.onerror = () => {
+      document.getElementById('ticketDlg').close();
+      showMsg('No se pudo cargar la imagen del ticket', false);
+    };
+    img.src = json.data.url;
+    document.getElementById('ticketOpen').href = json.data.url;
+    document.getElementById('ticketTitle').textContent = 'Ticket del folio ' + folio;
+    document.getElementById('ticketDlg').showModal();
+  } catch (e) {
+    console.error(e);
+    showMsg('No se pudo abrir el ticket', false);
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+async function send(btn, path, body, method) {
   btn.disabled = true;
   try {
-    const json = await api(path, 'POST', body);
+    const json = await api(path, method || 'POST', body);
     showMsg(json.message, json.success);
     if (json.success) await load();
   } catch (e) {
@@ -393,6 +441,20 @@ async function send(btn, path, body) {
     btn.disabled = false;
   }
 }
+
+(function () {
+  const dlg = document.getElementById('ticketDlg');
+  const close = () => dlg.close();
+  document.getElementById('ticketClose').addEventListener('click', close);
+  dlg.addEventListener('click', e => { if (e.target === dlg) close(); });
+  // al cerrar se quita la imagen y su enlace temporal
+  dlg.addEventListener('close', () => {
+    const img = document.getElementById('ticketImg');
+    img.onerror = null;
+    img.removeAttribute('src');
+    document.getElementById('ticketOpen').href = '#';
+  });
+})();
 
 document.getElementById('tabs').addEventListener('click', e => {
   const b = e.target.closest('button[data-filter]');
@@ -404,18 +466,22 @@ document.getElementById('tabs').addEventListener('click', e => {
 
 document.getElementById('reload').addEventListener('click', () => { showMsg('', true); load(); });
 
-document.getElementById('seed').addEventListener('click', e => {
+document.getElementById('load').addEventListener('click', e => {
   send(e.currentTarget, `${API}/importar`);
+});
+
+document.getElementById('seed').addEventListener('click', e => {
+  send(e.currentTarget, `${API}/simular`, { cantidad: 1 });
 });
 
 document.getElementById('reseed').addEventListener('click', e => {
   const btn = e.currentTarget;
   confirmModal(
-    'Reiniciar pruebas',
-    'Se volveran a cargar las solicitudes de prueba y se <b>perderan las decisiones</b> que hayas tomado.',
-    'Reiniciar'
+    'Borrar pruebas',
+    'Se borraran las solicitudes de prueba: las creadas con <b>Simular solicitud</b> y las traidas con <b>Cargar pruebas</b>. Las que llegaron desde Valeria IA no se tocan.',
+    'Borrar'
   ).then(ok => {
-    if (ok) send(btn, `${API}/reiniciar`);
+    if (ok) send(btn, `${API}/pruebas`, undefined, 'DELETE');
   });
 });
 
@@ -424,7 +490,7 @@ document.getElementById('cards').addEventListener('click', e => {
   if (!btn) return;
   const card = btn.closest('.req');
   const folio = card.dataset.folio;
-  const item = items.find(x => x.folio === folio);
+  const item = items.find(x => String(x.folio) === folio);
   const fPartial = card.querySelector('.f-partial');
   const fReject = card.querySelector('.f-reject');
 
@@ -432,11 +498,14 @@ document.getElementById('cards').addEventListener('click', e => {
     case 'approve':
       confirmModal(
         'Aprobar justificacion',
-        `Se aprobara <b>${escapeHtml(folio)}</b> de <b>${escapeHtml(item ? item.driver_name : '')}</b> por el total solicitado: <b>${escapeHtml(item ? fmtMin(item.requested_minutes) : '-')}</b>.`,
+        `Se aprobara el folio <b>${escapeHtml(folio)}</b> de <b>${escapeHtml(item ? item.nombre_completo : '')}</b> por el total solicitado: <b>${escapeHtml(item ? fmtMin(item.minutos_solicitados) : '-')}</b>.`,
         'Aprobar'
       ).then(ok => {
         if (ok) send(btn, `${API}/${encodeURIComponent(folio)}/aprobar`);
       });
+      break;
+    case 'ticket':
+      openTicket(btn, folio);
       break;
     case 'partial-open':
       fReject.hidden = true; fPartial.hidden = false;
@@ -452,7 +521,7 @@ document.getElementById('cards').addEventListener('click', e => {
     case 'partial-save': {
       const minutes = parseInt(fPartial.querySelector('input').value, 10);
       const note = fPartial.querySelector('textarea').value.trim();
-      const requested = item ? (item.requested_minutes || 0) : 0;
+      const requested = item ? (item.minutos_solicitados || 0) : 0;
       if (!Number.isInteger(minutes) || minutes <= 0 || minutes >= requested) {
         showMsg('Los minutos deben ser mayores a 0 y menores a ' + requested, false);
         return;
@@ -463,6 +532,7 @@ document.getElementById('cards').addEventListener('click', e => {
     }
     case 'reject-save': {
       const note = fReject.querySelector('textarea').value.trim();
+      if (!note) { showMsg('El motivo del rechazo es obligatorio', false); return; }
       send(btn, `${API}/${encodeURIComponent(folio)}/rechazar`, { note });
       break;
     }

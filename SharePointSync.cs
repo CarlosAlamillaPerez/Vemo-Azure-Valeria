@@ -1,6 +1,6 @@
+using System.Globalization;
 using System.Net.Http.Json;
 using System.Text.RegularExpressions;
-using VemoLab.Api.Controllers;
 
 namespace VemoLab.Api;
 
@@ -31,7 +31,7 @@ public class SharePointSync
         _logger = logger;
     }
 
-    public async Task<(bool Ok, string? Error)> SendAsync(Justification item, CancellationToken ct)
+    public async Task<(bool Ok, string? Error)> SendAsync(Solicitud item, CancellationToken ct)
     {
         var url = _config["Sharepoint:FlowUrl"];
         if (string.IsNullOrWhiteSpace(url))
@@ -97,39 +97,47 @@ public class SharePointSync
     private static string Truncate(string text) =>
         text.Length <= MaxStoredError ? text : text[..MaxStoredError] + "...";
 
-    // Mismos nombres que el esquema JSON del desencadenador del flujo
-    private static Dictionary<string, object?> BuildPayload(Justification item)
+    // Mismos nombres y TIPOS que el esquema JSON del desencadenador del flujo. Si el esquema dice integer
+    // y mandamos 1.5, el flujo responde 400 TriggerInputSchemaMismatch (ya nos paso con horas_perdidas).
+    private Dictionary<string, object?> BuildPayload(Solicitud item)
     {
-        var lostMinutes = item.RequestedMinutes ?? 0;   // tiempo que perdio el conductor, sin importar la decision
+        var lostMinutes = item.MinutosSolicitados;   // tiempo que perdio el conductor, sin importar la decision
 
         var parts = new List<string>();
-        if (!string.IsNullOrWhiteSpace(item.Reason)) parts.Add(item.Reason.Trim());
-        if (!string.IsNullOrWhiteSpace(item.Note)) parts.Add("Nota: " + item.Note.Trim());
+        if (!string.IsNullOrWhiteSpace(item.MotivoDesconexion)) parts.Add(item.MotivoDesconexion.Trim());
+        if (!string.IsNullOrWhiteSpace(item.Nota)) parts.Add("Nota: " + item.Nota.Trim());
 
-        var dia = item.ReceivedAt is { Length: >= 10 } received
+        var horario = new[] { item.HoraInicio, item.HoraFin }
+            .Where(h => !string.IsNullOrWhiteSpace(h))
+            .Select(h => h!.Trim());
+
+        var dia = item.RecibidoEl is { Length: >= 10 } received
             ? received[..10]
             : DateTime.UtcNow.ToString("yyyy-MM-dd");
 
+        // Sharepoint:MarcarComoPrueba=false quita la marca [PRUEBA] de las observaciones
+        var marca = _config.GetValue("Sharepoint:MarcarComoPrueba", true) ? TestMarker : string.Empty;
+
         return new Dictionary<string, object?>
         {
-            ["sistema_id"] = item.Folio,                                    // pendiente: id numerico del sistema origen
-            ["conductor"] = (item.DriverName ?? string.Empty).ToUpperInvariant(),
-            ["conductor_justificado"] = item.Status switch
+            ["sistema_id"] = item.Folio.ToString(CultureInfo.InvariantCulture),   // pendiente: validar con BI si puede ser nuestro folio
+            ["conductor"] = item.NombreCompleto.ToUpperInvariant(),
+            ["conductor_justificado"] = item.Estatus switch
             {
-                "aprobada" => "Si",
-                "parcial" => "Parcial",
-                "rechazada" => "No",
+                EstatusSolicitud.Aprobada => "Si",
+                EstatusSolicitud.Parcial => "Parcial",
+                EstatusSolicitud.Rechazada => "No",
                 _ => "A revisar"
             },
             ["pais"] = "Mexico",
             ["pais_id"] = TestValue,                                        // pendiente: no tenemos este dato
-            ["turno"] = item.ShiftStart ?? string.Empty,                    // pendiente: falta la hora de fin
+            ["turno"] = string.Join(" - ", horario),                        // "hora_inicio - hora_fin"
             ["dia"] = dia,                                                  // pendiente: dia del turno, hoy es la fecha de recepcion
             ["horas_perdidas"] = Math.Round(lostMinutes / 60.0, 2),
             ["minutos_perdidos"] = lostMinutes,
-            ["categoria"] = TestValue,                                      // pendiente: catalogo de categorias
-            ["observaciones"] = TestMarker + string.Join(" | ", parts),
-            ["hub"] = item.Hub ?? string.Empty
+            ["categoria"] = string.IsNullOrWhiteSpace(item.Categoria) ? TestValue : item.Categoria,
+            ["observaciones"] = marca + string.Join(" | ", parts),
+            ["hub"] = item.Hub
         };
     }
 }
